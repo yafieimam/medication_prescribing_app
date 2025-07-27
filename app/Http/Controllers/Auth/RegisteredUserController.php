@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
 
 class RegisteredUserController extends Controller
 {
@@ -47,6 +48,19 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        Log::info('User berhasil mendaftar dan login.', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'role' => $user->role,
+            'ip' => $request->ip(),
+        ]);
+
+        // return redirect(route('dashboard', absolute: false));
+
+        return match ($user->role) {
+            'dokter' => redirect()->route('dokter.dashboard'),
+            'apoteker' => redirect()->route('apoteker.dashboard'),
+            default => abort(403, 'Role tidak dikenal.'),
+        };
     }
 }
