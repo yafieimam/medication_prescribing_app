@@ -20,4 +20,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
 });
 
+Route::middleware(['auth', 'role:dokter'])->group(function () {
+    Route::get('/dokter/dashboard', function () {
+        return view('dokter.dashboard');
+    })->name('dokter.dashboard');
+});
+
+Route::middleware(['auth', 'role:apoteker'])->group(function () {
+    Route::get('/apoteker/dashboard', function () {
+        return view('apoteker.dashboard');
+    })->name('apoteker.dashboard');
+});
+
 require __DIR__.'/auth.php';
