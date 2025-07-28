@@ -22,7 +22,7 @@
 
                 <div class="grid grid-cols-3 md:grid-cols-3 gap-4">
                     <x-input-group type="text" label="Nama Pasien" name="nama_pasien" :value="old('nama_pasien')" />
-                    <x-input-group type="date" label="Waktu Pemeriksaan" name="waktu_pemeriksaan" :value="old('waktu_pemeriksaan')" />
+                    <x-input-group type="datetime-local" label="Waktu Pemeriksaan" name="waktu_pemeriksaan" :value="old('waktu_pemeriksaan')" />
                 </div>
 
                 <div class="grid grid-cols-4 md:grid-cols-4 gap-4 mt-4">
@@ -52,22 +52,37 @@
                     </div>
                 </div>
 
-                <div class="mt-6">
-                    <h3 class="text-lg font-semibold mb-2">Resep Obat</h3>
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Resep Obat</h3>
 
-                    <div id="resep-container">
-                        <div class="resep-item grid grid-cols-4 gap-4 mb-2">
-                            <select name="resep[0][medicine_id]" class="medicine-select w-full border p-1" data-index="0"></select>
-                            <x-text-input name="resep[0][dosage]" placeholder="Dosis (misal: 3x1)" class="border p-1 w-full" />
-                            <x-text-input type="number" name="resep[0][quantity]" placeholder="Jumlah" class="border p-1 w-full" />
+                    <div id="resep-container" class="space-y-4">
+                        <div class="resep-item bg-gray-50 p-4 rounded-md shadow-sm border grid grid-cols-12 gap-4 relative">
+                            <div class="col-span-4">
+                                <select name="resep[0][medicine_id]" class="medicine-select w-full border rounded-md p-2" data-index="0" placeholder="Pilih obat..."></select>
+                            </div>
+                            <div class="col-span-3">
+                                <x-text-input name="resep[0][dosage]" placeholder="Dosis (misal: 3x1)" class="w-full border p-2 rounded-md" />
+                            </div>
+                            <div class="col-span-3">
+                                <x-text-input type="number" name="resep[0][quantity]" placeholder="Jumlah" class="w-full border p-2 rounded-md" />
+                            </div>
+
                             <x-text-input type="hidden" name="resep[0][medicine_name]" class="medicine-name-hidden" />
                             <x-text-input type="hidden" name="resep[0][medicine_price]" class="medicine-price-hidden" />
-                            <button type="button" class="btn-delete-resep text-red-500">Hapus</button>
+
+                            <button type="button"
+                                class="btn-delete-resep absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-full shadow">
+                                ✕
+                            </button>
                         </div>
                     </div>
 
-                    <x-secondary-button id="add-resep">+ Tambah Obat</x-secondary-button>
+
+                    <div class="mt-4">
+                        <x-secondary-button id="add-resep">+ Tambah Obat</x-secondary-button>
+                    </div>
                 </div>
+
 
                 <x-primary-button class="mt-4">Simpan Pemeriksaan</x-primary-button>
             </form>
@@ -80,6 +95,7 @@
                 const select = document.querySelector(`select.medicine-select[data-index="${index}"]`);
 
                 $(select).select2({
+                    allowClear: true,
                     placeholder: "Cari nama obat...",
                     ajax: {
                         url: "{{ route('ajax.obat.autocomplete') }}",
@@ -119,13 +135,24 @@
                 let container = document.getElementById('resep-container');
                 let index = container.querySelectorAll('.resep-item').length;
                 let html = `
-                    <div class="resep-item grid grid-cols-4 gap-4 mb-2">
-                        <select name="resep[${index}][medicine_id]" class="medicine-select w-full border p-1" data-index="${index}"></select>
-                        <x-text-input name="resep[${index}][dosage]" placeholder="Dosis" class="border p-1 w-full" />
-                        <x-text-input type="number" name="resep[${index}][quantity]" placeholder="Jumlah" class="border p-1 w-full" />
-                        <x-text-input type="hidden" name="resep[${index}][medicine_name]" />
-                        <x-text-input type="hidden" name="resep[${index}][medicine_price]" />
-                        <button type="button" class="btn-delete-resep text-red-500">Hapus</button>
+                    <div class="resep-item bg-gray-50 p-4 rounded-md shadow-sm border grid grid-cols-12 gap-4 relative">
+                        <div class="col-span-4">
+                            <select name="resep[${index}][medicine_id]" class="medicine-select w-full border rounded-md p-2" data-index="${index}" placeholder="Pilih obat..."></select>
+                        </div>
+                        <div class="col-span-3">
+                            <x-text-input name="resep[${index}][dosage]" placeholder="Dosis (misal: 3x1)" class="w-full border p-2 rounded-md" />
+                        </div>
+                        <div class="col-span-3">
+                            <x-text-input type="number" name="resep[${index}][quantity]" placeholder="Jumlah" class="w-full border p-2 rounded-md" />
+                        </div>
+
+                        <x-text-input type="hidden" name="resep[${index}][medicine_name]" class="medicine-name-hidden" />
+                        <x-text-input type="hidden" name="resep[${index}][medicine_price]" class="medicine-price-hidden" />
+                        
+                        <button type="button"
+                            class="btn-delete-resep absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-full shadow">
+                            ✕
+                        </button>
                     </div>
                 `;
                 container.insertAdjacentHTML('beforeend', html);

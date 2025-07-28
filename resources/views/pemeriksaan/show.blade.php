@@ -49,12 +49,15 @@
             {{-- Resep Obat --}}
             <x-card>
                 <x-slot name="title">💊 Resep Obat</x-slot>
+                
                 @if ($pemeriksaan->reseps->count())
                     <ul class="list-disc ml-6 space-y-1 text-gray-700">
                         @foreach ($pemeriksaan->reseps as $resep)
                             <li>
-                                <strong>{{ $resep->medicine_name }}</strong> - {{ $resep->quantity }} pcs
-                                <span class="text-sm text-gray-500">(Rp {{ number_format($resep->prices) }})</span>
+                                <strong>{{ $resep->medicine_name }}</strong> – 
+                                {{ $resep->quantity }} pcs 
+                                <span class="text-sm text-gray-500">(Rp {{ number_format($resep->prices) }})</span><br>
+                                <span class="text-sm text-gray-600 italic">Dosis: {{ $resep->dosage }}</span>
                             </li>
                         @endforeach
                     </ul>
@@ -62,6 +65,7 @@
                     <p class="text-gray-500 italic">Tidak ada resep.</p>
                 @endif
             </x-card>
+
 
             {{-- Berkas Pemeriksaan --}}
             <x-card>

@@ -40,7 +40,7 @@ class PemeriksaanController extends Controller
     {
         $validated = $request->validate([
             'nama_pasien' => 'required|string',
-            'waktu_pemeriksaan' => 'required|date',
+            'waktu_pemeriksaan' => 'required|date_format:Y-m-d\TH:i',
             'tinggi_badan' => 'required|numeric',
             'berat_badan' => 'required|numeric',
             'systole' => 'required|integer',
@@ -73,14 +73,23 @@ class PemeriksaanController extends Controller
             }
 
             foreach ($request->input('resep', []) as $item) {
-                Resep::create([
-                    'pemeriksaan_id' => $pemeriksaan->id,
-                    'medicine_id' => $item['medicine_id'],
-                    'medicine_name' => $item['medicine_name'],
-                    'dosage' => $item['dosage'],
-                    'quantity' => $item['quantity'],
-                    'prices' => $item['medicine_price'],
-                ]);
+                if (
+                    isset($item['medicine_id'], $item['medicine_name'], $item['dosage'], $item['quantity'], $item['medicine_price']) &&
+                    $item['medicine_id'] !== null &&
+                    $item['medicine_name'] !== null &&
+                    $item['dosage'] !== null &&
+                    $item['quantity'] !== null &&
+                    $item['medicine_price'] !== null
+                ) {
+                    Resep::create([
+                        'pemeriksaan_id' => $pemeriksaan->id,
+                        'medicine_id' => $item['medicine_id'],
+                        'medicine_name' => $item['medicine_name'],
+                        'dosage' => $item['dosage'],
+                        'quantity' => $item['quantity'],
+                        'prices' => $item['medicine_price'],
+                    ]);
+                }
             }
 
             Log::info('Creating Data Pemeriksaan and Resep', [
