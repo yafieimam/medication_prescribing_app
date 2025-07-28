@@ -23,7 +23,7 @@
 
                 <div class="grid grid-cols-3 md:grid-cols-3 gap-4">
                     <x-input-group type="text" label="Nama Pasien" name="nama_pasien" value="{{ old('nama_pasien', $pemeriksaan->nama_pasien) }}" />
-                    <x-input-group type="date" label="Waktu Pemeriksaan" name="waktu_pemeriksaan" value="{{ old('waktu_pemeriksaan', \Carbon\Carbon::parse($pemeriksaan->waktu_pemeriksaan)->toDateString()) }}" />
+                    <x-input-group type="datetime-local" label="Waktu Pemeriksaan" name="waktu_pemeriksaan" value="{{ old('waktu_pemeriksaan', \Carbon\Carbon::parse($pemeriksaan->waktu_pemeriksaan)->format('Y-m-d\TH:i')) }}" />
                 </div>
 
                 <div class="grid grid-cols-4 md:grid-cols-4 gap-4 mt-4">
@@ -40,34 +40,55 @@
                     </div>
                 </div>
 
-                <div class="mt-6">
-                    <h3 class="text-lg font-semibold mb-2">Resep Obat</h3>
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Resep Obat</h3>
 
-                    <div id="resep-container">
+                    <div id="resep-container" class="space-y-4">
                         @foreach ($pemeriksaan->reseps as $i => $resep)
-                            <div class="resep-item grid grid-cols-4 gap-4 mb-2">
-                                <select name="resep[{{ $i }}][medicine_id]" data-index="{{ $i }}" class="medicine-select w-full border p-1" required data-initial-id="{{ $resep->medicine_id }}" data-initial-name="{{ $resep->medicine_name }}"></select>
-                                <x-text-input name="resep[{{ $i }}][dosage]" placeholder="Dosis (misal: 3x1)" class="border p-1 w-full" value="{{ $resep->dosage }}" />
-                                <x-text-input type="number" name="resep[{{ $i }}][quantity]" placeholder="Jumlah" class="border p-1 w-full" value="{{ $resep->quantity }}" />
+                            <div class="resep-item bg-gray-50 p-4 rounded-md shadow-sm border grid grid-cols-12 gap-4 relative">
+                                <div class="col-span-4">
+                                    <select name="resep[{{ $i }}][medicine_id]" data-index="{{ $i }}" class="medicine-select w-full border rounded-md p-2" required data-initial-id="{{ $resep->medicine_id }}" data-initial-name="{{ $resep->medicine_name }}"></select>
+                                </div>
+                                <div class="col-span-3">
+                                    <x-text-input name="resep[{{ $i }}][dosage]" placeholder="Dosis (misal: 3x1)" class="border p-2 w-full rounded-md" value="{{ $resep->dosage }}" />
+                                </div>
+                                <div class="col-span-3">
+                                    <x-text-input type="number" name="resep[{{ $i }}][quantity]" placeholder="Jumlah" class="border p-2 w-full rounded-md" value="{{ $resep->quantity }}" />
+                                </div>
+
                                 <x-text-input type="hidden" name="resep[{{ $i }}][medicine_name]" class="medicine-name-hidden" value="{{ $resep->medicine_name }}" />
                                 <x-text-input type="hidden" name="resep[{{ $i }}][medicine_price]" class="medicine-price-hidden" value="{{ $resep->medicine_price }}" />
-                                <button type="button" class="btn-delete-resep text-red-500">Hapus</button>
+                                
+                                <button type="button"
+                                    class="btn-delete-resep absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-full shadow">
+                                    ✕
+                                </button>
                             </div>
                         @endforeach
                     </div>
 
-                    <x-secondary-button id="add-resep">+ Tambah Resep</x-secondary-button>
+                    <div class="mt-4">
+                        <x-secondary-button id="add-resep">+ Tambah Resep</x-secondary-button>
+                    </div>
                 </div>
 
                 <div class="mt-6">
                     <h3 class="text-lg font-semibold mt-6 mb-2">Berkas Pemeriksaan</h3>
                     <div class="mb-4">
                         <p>Berkas saat ini:</p>
-                        @foreach ($pemeriksaan->berkas as $file)
-                            <div class="flex items-center gap-2">
-                                <a href="{{ Storage::url($file->path) }}" target="_blank" class="text-blue-500 underline">Lihat File {{ $loop->iteration }}</a>
+                        @forelse ($pemeriksaan->berkas as $file)
+                            <div class="flex items-center gap-3 mb-1">
+                                <a href="{{ Storage::url($file->file_path) }}" target="_blank" class="text-blue-600 underline">
+                                    Lihat File {{ $loop->iteration }}
+                                </a>
+                                <label class="inline-flex items-center text-sm text-red-600">
+                                    <input type="checkbox" name="hapus_berkas[]" value="{{ $file->id }}" class="mr-1">
+                                    Hapus
+                                </label>
                             </div>
-                        @endforeach
+                        @empty
+                            <p class="text-gray-500 italic">Tidak ada berkas.</p>
+                        @endforelse
                     </div>
                     <div class="mb-4">
                         <x-input-label for="berkas[]" value="Upload Berkas Baru (boleh lebih dari satu)" />
@@ -81,41 +102,40 @@
         </div>
     </div>
 
-    {{-- Script Select2 --}}
-    @push('scripts')
     <script>
-        let resepIndex = {{ $pemeriksaan->reseps->count() }};
+        document.addEventListener("DOMContentLoaded", function () {
+            let resepIndex = {{ $pemeriksaan->reseps->count() }};
 
-        function initSelect2(select) {
-            $(select).select2({
-                placeholder: "Cari nama obat...",
-                ajax: {
-                    url: '{{ route('ajax.obat.autocomplete') }}',
-                    dataType: 'json',
-                    delay: 250,
-                    data: params => ({ q: params.term }),
-                    processResults: function (data) {
-                        return {
-                            results: data.map(item => ({
-                                id: item.id,
-                                text: item.name
-                            }))
-                        };
+            function initSelect2(select) {
+                $(select).select2({
+                    allowClear: true,
+                    placeholder: "Cari nama obat...",
+                    ajax: {
+                        url: '{{ route('ajax.obat.autocomplete') }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({ q: params.term }),
+                        processResults: function (data) {
+                            return {
+                                results: data.map(item => ({
+                                    id: item.id,
+                                    text: item.name
+                                }))
+                            };
+                        }
                     }
+                });
+
+                // Set nilai awal dari data-attribute (untuk existing data)
+                const initId = $(select).data('initial-id');
+                const initName = $(select).data('initial-name');
+
+                if (initId && initName) {
+                    const option = new Option(initName, initId, true, true);
+                    $(select).append(option).trigger('change');
                 }
-            });
-
-            // Set nilai awal dari data-attribute (untuk existing data)
-            const initId = $(select).data('initial-id');
-            const initName = $(select).data('initial-name');
-
-            if (initId && initName) {
-                const option = new Option(initName, initId, true, true);
-                $(select).append(option).trigger('change');
             }
-        }
 
-        $(document).ready(function () {
             $('.medicine-select').each(function () {
                 initSelect2(this);
             });
@@ -125,14 +145,29 @@
                 let index = container.querySelectorAll('.resep-item').length;
 
                 const newRow = `
-                    <div class="resep-item flex items-center gap-4">
-                        <select name="resep[${resepIndex}][medicine_id]" class="medicine-select w-full" required></select>
-                        <input type="number" name="resep[${resepIndex}][jumlah]" class="border rounded p-2 w-32" placeholder="Jumlah" required>
-                        <button type="button" class="btn-delete-resep text-red-500">Hapus</button>
+                    <div class="resep-item bg-gray-50 p-4 rounded-md shadow-sm border grid grid-cols-12 gap-4 relative">
+                        <div class="col-span-4">
+                            <select name="resep[${resepIndex}][medicine_id]" class="medicine-select w-full border rounded-md p-2" data-index="${resepIndex}" placeholder="Pilih obat..."></select>
+                        </div>
+                        <div class="col-span-3">
+                            <x-text-input name="resep[${resepIndex}][dosage]" placeholder="Dosis (misal: 3x1)" class="w-full border p-2 rounded-md" />
+                        </div>
+                        <div class="col-span-3">
+                            <x-text-input type="number" name="resep[${resepIndex}][quantity]" placeholder="Jumlah" class="w-full border p-2 rounded-md" />
+                        </div>
+
+                        <x-text-input type="hidden" name="resep[${resepIndex}][medicine_name]" class="medicine-name-hidden" />
+                        <x-text-input type="hidden" name="resep[${resepIndex}][medicine_price]" class="medicine-price-hidden" />
+                        
+                        <button type="button"
+                            class="btn-delete-resep absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-full shadow">
+                            ✕
+                        </button>
                     </div>
                 `;
+
                 $('#resep-container').append(newRow);
-                initSelect2(`#resep-container .resep-row:last-child .medicine-select`);
+                initSelect2(`#resep-container .resep-item:last-child .medicine-select`);
                 resepIndex++;
             });
 
@@ -141,5 +176,4 @@
             });
         });
     </script>
-    @endpush
 </x-app-layout>

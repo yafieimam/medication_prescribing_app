@@ -116,8 +116,8 @@ class ObatApiService
 
     public function getNamaObat(string $medicineId): string
     {
-        $all = $this->getAllMedicines();
-        foreach ($all as $obat) {
+        $all = $this->getMedicines();
+        foreach ($all['medicines'] as $obat) {
             if ($obat['id'] === $medicineId) {
                 return $obat['name'];
             }

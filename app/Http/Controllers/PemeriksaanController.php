@@ -139,25 +139,27 @@ class PemeriksaanController extends Controller
      */
     public function update(Request $request, Pemeriksaan $pemeriksaan)
     {
-        if ($pemeriksaan->sudah_dilayani === 0) {
+        if ($pemeriksaan->sudah_dilayani === 1) {
             abort(403, 'Pemeriksaan sudah tidak bisa diedit.');
         }
 
         $validated = $request->validate([
             'nama_pasien' => 'required|string|max:255',
-            'waktu_pemeriksaan' => 'required|date',
-            'tinggi_badan' => 'nullable|numeric',
-            'berat_badan' => 'nullable|numeric',
-            'systole' => 'nullable|numeric',
-            'diastole' => 'nullable|numeric',
-            'heart_rate' => 'nullable|numeric',
-            'respiration_rate' => 'nullable|numeric',
-            'suhu_tubuh' => 'nullable|numeric',
+            'waktu_pemeriksaan' => 'required|date_format:Y-m-d\TH:i',
+            'tinggi_badan' => 'required|numeric',
+            'berat_badan' => 'required|numeric',
+            'systole' => 'required|integer',
+            'diastole' => 'required|integer',
+            'heart_rate' => 'required|integer',
+            'respiration_rate' => 'required|integer',
+            'suhu_tubuh' => 'required|numeric',
             'catatan' => 'nullable|string',
+            'berkas.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'resep' => 'nullable|array',
-            'resep.*.medicine_id' => 'required|string',
-            'resep.*.jumlah' => 'required|numeric|min:1',
-            'files.*' => 'nullable|file|max:2048',
+            'resep.*.medicine_id' => 'nullable|string',
+            'resep.*.dosage' => 'nullable|string',
+            'resep.*.quantity' => 'nullable|integer|min:1',
+            'resep.*.medicine_price' => 'nullable|integer|min:1',
         ]);
 
         // Update pemeriksaan
@@ -184,10 +186,28 @@ class PemeriksaanController extends Controller
 
             $pemeriksaan->reseps()->create([
                 'medicine_id' => $resep['medicine_id'],
-                'nama_obat' => $obatApi->getNamaObat($resep['medicine_id']),
-                'jumlah' => $resep['jumlah'],
-                'harga_satuan' => $harga ?? 0,
+                'medicine_name' => $obatApi->getNamaObat($resep['medicine_id']),
+                'dosage' => $resep['dosage'],
+                'quantity' => $resep['quantity'],
+                'prices' => $harga ?? 0,
             ]);
+        }
+
+        // Hapus file jika diinginkan
+        if ($request->filled('hapus_berkas')) {
+            foreach ($request->hapus_berkas as $berkasId) {
+                $berkas = PemeriksaanBerkas::find($berkasId);
+                if ($berkas) {
+                    Storage::delete($berkas->file_path);
+                    $berkas->delete();
+
+                    Log::info('Berkas pemeriksaan dihapus', [
+                        'berkas_id' => $berkasId,
+                        'user_id' => auth()->id(),
+                        'pemeriksaan_id' => $pemeriksaan->id
+                    ]);
+                }
+            }
         }
 
         // Simpan file baru jika ada
