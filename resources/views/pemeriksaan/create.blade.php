@@ -17,15 +17,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if ($errors->any())
-                <div class="mb-4 p-4 bg-red-100 text-red-600 rounded">
-                    <ul class="list-disc pl-5 mt-2">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
             <form action="{{ route('pemeriksaan.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
@@ -39,9 +30,6 @@
                     <x-input-group type="number" label="Berat Badan (kg)" name="berat_badan" :value="old('berat_badan')" />
                     <x-input-group type="number" label="Systole" name="systole" :value="old('systole')" />
                     <x-input-group type="number" label="Diastole" name="diastole" :value="old('diastole')" />
-                </div>
-
-                <div class="grid grid-cols-4 md:grid-cols-4 gap-4 mt-4">
                     <x-input-group type="number" label="Heart Rate" name="heart_rate" :value="old('heart_rate')" />
                     <x-input-group type="number" label="Respiration Rate" name="respiration_rate" :value="old('respiration_rate')" />
                     <x-input-group type="number" label="Suhu Tubuh (°C)" name="suhu_tubuh" :value="old('suhu_tubuh')" />
@@ -56,9 +44,12 @@
                 </div>
 
                 <div class="mt-6">
-                    <x-input-label for="berkas[]" value="Upload Berkas Pemeriksaan (boleh lebih dari satu)" />
-                    <input type="file" name="berkas[]" multiple class="w-full border rounded-md" />
-                    <x-input-error :messages="$errors->get('berkas')" />
+                    <h3 class="text-lg font-semibold mt-6 mb-2">Berkas Pemeriksaan</h3>
+                    <div class="mb-4">
+                        <x-input-label for="berkas[]" value="Upload Berkas Pemeriksaan (boleh lebih dari satu)" />
+                        <input type="file" name="berkas[]" multiple class="w-full border rounded-md" />
+                        <x-input-error :messages="$errors->get('berkas')" />
+                    </div>
                 </div>
 
                 <div class="mt-6">
@@ -98,7 +89,6 @@
                             return { q: params.term };
                         },
                         processResults: function (data) {
-                            console.log(data);
                             return {
                                 results: data.map(item => ({
                                     id: item.id,

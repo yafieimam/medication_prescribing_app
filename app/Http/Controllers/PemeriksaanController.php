@@ -120,7 +120,7 @@ class PemeriksaanController extends Controller
             abort(403, 'Pemeriksaan sudah tidak bisa diedit.');
         }
 
-        $pemeriksaan->load(['resep', 'files']);
+        $pemeriksaan->load(['reseps', 'berkas']);
 
         return view('pemeriksaan.edit', compact('pemeriksaan'));
     }
@@ -166,14 +166,14 @@ class PemeriksaanController extends Controller
         ]);
 
         // Hapus resep lama
-        $pemeriksaan->resep()->delete();
+        $pemeriksaan->reseps()->delete();
 
         // Simpan resep baru
         $obatApi = app(ObatApiService::class);
         foreach ($request->resep ?? [] as $resep) {
             $harga = $obatApi->getMedicinePrice($resep['medicine_id'], $request->waktu_pemeriksaan);
 
-            $pemeriksaan->resep()->create([
+            $pemeriksaan->reseps()->create([
                 'medicine_id' => $resep['medicine_id'],
                 'nama_obat' => $obatApi->getNamaObat($resep['medicine_id']),
                 'jumlah' => $resep['jumlah'],
@@ -182,12 +182,12 @@ class PemeriksaanController extends Controller
         }
 
         // Simpan file baru jika ada
-        if ($request->hasFile('files')) {
-            foreach ($request->file('files') as $file) {
+        if ($request->hasFile('berkas')) {
+            foreach ($request->file('berkas') as $file) {
                 $path = $file->store('berkas', 'public');
 
-                $pemeriksaan->files()->create([
-                    'path' => $path,
+                $pemeriksaan->berkas()->create([
+                    'file_path' => $path,
                 ]);
             }
         }
