@@ -1,61 +1,92 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏥 Aplikasi Pencatatan Pemeriksaan & Resep Obat
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistem berbasis web untuk pencatatan pemeriksaan pasien oleh dokter dan pengelolaan resep serta pembayaran oleh apoteker.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 👨‍⚕️ Dokter
+- 🔎 Input pemeriksaan pasien (tanda vital, catatan, upload berkas)
+- 💊 Tambah resep obat secara dinamis dengan pencarian obat via API
+- 📎 Upload banyak berkas per pemeriksaan
+- ✏️ Edit pemeriksaan (selama belum dilayani)
+- 🗂️ Lihat detail pemeriksaan
+- 🧾 Validasi data dan notifikasi (toast)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 💊 Apoteker
+- 📄 Lihat daftar pemeriksaan yang belum dilayani
+- ✅ Finalisasi pembayaran resep
+- 🧾 Cetak resi pembayaran dalam format PDF
+- 📌 Lihat detail resep dan total harga per item
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## ⚙️ Tech Stack
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- Laravel 10+
+- Blade Components + TailwindCSS
+- Select2 untuk autocomplete obat
+- DOM scripting dengan JavaScript
+- DomPDF untuk cetak resi PDF
+- Relasi Many-to-Many dengan data tambahan (pivot-like)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 🧰 Instalasi & Menjalankan Proyek
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 1. Clone repositori
+git clone https://github.com/yafieimam/medication_prescribing_app.git
+cd medication_prescribing_app
 
-### Premium Partners
+### 2. Install dependensi
+composer install
+npm install && npm run build
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 3. Konfigurasi .env dan Konfigurasi Storage
+cp .env.example .env
+php artisan key:generate
+php artisan storage:link
 
-## Contributing
+### 4. Tambahkan Konfigurasi pada .env
+Atur API:
+OBAT_API_URL=http://recruitment.rsdeltasurya.com/api/v1
+OBAT_EMAIL=email address anda
+OBAT_PHONE=nomor handphone anda
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Atur DB:
+DB_DATABASE=...
+DB_USERNAME=...
+DB_PASSWORD=...
 
-## Code of Conduct
+### 5. Migrasi & seeding database
+php artisan migrate --seed
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 6. Jalankan server
+php artisan serve
 
-## Security Vulnerabilities
+## 🔑 Login & Role
+Role	    Email	                Password
+Dokter	    dokter@example.com	    password
+Apoteker	apoteker@example.com	password
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🛠️ Fitur Khusus
 
-## License
+### 🔍 Autocomplete Obat (API)
+- Terintegrasi dengan API eksternal
+- Otomatis menghitung harga berdasarkan tanggal pemeriksaan
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 📦 Upload Berkas
+- Dapat upload lebih dari 1 file per pemeriksaan
+- Bisa hapus berkas yang terlanjur diupload saat edit
+
+### 📋 Dynamic Resep Form
+- Bisa tambah/hapus baris resep
+- Select2 untuk pencarian nama obat
+
+### 📄 PDF Resi Pembayaran
+- Cetak struk resep per pasien dalam format rapi
+- Menampilkan detail dosis, jumlah, harga satuan, dan total
+
+
+
