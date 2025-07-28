@@ -45,19 +45,19 @@
                             <td class="px-4 py-2 text-center">{{ $item->reseps_count }}</td>
                             <td class="px-4 py-2 text-center">{{ $item->berkas_count }}</td>
                             <td class="px-4 py-2">
-    <div class="flex items-center space-x-2">
-        <a href="{{ route('pemeriksaan.show', $item) }}" title="Lihat"
-           class="inline-flex items-center justify-center rounded-md p-1 hover:bg-blue-100">
-            @svg('heroicon-o-eye', 'h-5 w-5 text-blue-500')
-        </a>
-        @if ($item->sudah_dilayani === 0)
-            <a href="{{ route('pemeriksaan.edit', $item) }}" title="Edit"
-               class="inline-flex items-center justify-center rounded-md p-1 hover:bg-yellow-400">
-                @svg('heroicon-o-pencil', 'h-5 w-5 text-yellow-400')
-            </a>
-        @endif
-    </div>
-</td>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('pemeriksaan.show', $item) }}" title="Lihat"
+                                    class="inline-flex items-center justify-center rounded-md p-1 hover:bg-blue-100">
+                                        @svg('heroicon-o-eye', 'h-5 w-5 text-blue-500')
+                                    </a>
+                                    @if ($item->sudah_dilayani === 0)
+                                        <a href="{{ route('pemeriksaan.edit', $item) }}" title="Edit"
+                                        class="inline-flex items-center justify-center rounded-md p-1 hover:bg-yellow-100">
+                                            @svg('heroicon-o-pencil', 'h-5 w-5 text-yellow-400')
+                                        </a>
+                                    @endif
+                                </div>
+                            </td>
 
                         </tr>
                     @empty

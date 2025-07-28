@@ -113,4 +113,15 @@ class ObatApiService
             return (float) 0;
         }
     }
+
+    public function getNamaObat(string $medicineId): string
+    {
+        $all = $this->getAllMedicines();
+        foreach ($all as $obat) {
+            if ($obat['id'] === $medicineId) {
+                return $obat['name'];
+            }
+        }
+        return 'Obat Tidak Dikenal';
+    }
 }

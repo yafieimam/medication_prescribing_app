@@ -1,8 +1,18 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Input Pemeriksaan') }}
-        </h2>
+        <div class="flex items-center space-x-6">
+            {{-- Tombol Kembali --}}
+            <a href="{{ route('pemeriksaan.index') }}"
+            class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100">
+                @svg('heroicon-o-arrow-left', 'h-4 w-4 mr-2 text-gray-600')
+                Kembali
+            </a>
+
+            {{-- Judul --}}
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Input Pemeriksaan') }}
+            </h2>
+        </div>
     </x-slot>
 
     <div class="py-12">

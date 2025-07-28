@@ -7,6 +7,8 @@ use App\Models\PemeriksaanBerkas;
 use App\Models\Resep;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use App\Services\ObatApiService;
 
 class PemeriksaanController extends Controller
 {
@@ -104,7 +106,9 @@ class PemeriksaanController extends Controller
      */
     public function show(Pemeriksaan $pemeriksaan)
     {
-        //
+        $pemeriksaan->load(['reseps', 'berkas']);
+
+        return view('pemeriksaan.show', compact('pemeriksaan'));
     }
 
     /**
@@ -112,7 +116,13 @@ class PemeriksaanController extends Controller
      */
     public function edit(Pemeriksaan $pemeriksaan)
     {
-        //
+        if ($pemeriksaan->sudah_dilayani === 1) {
+            abort(403, 'Pemeriksaan sudah tidak bisa diedit.');
+        }
+
+        $pemeriksaan->load(['resep', 'files']);
+
+        return view('pemeriksaan.edit', compact('pemeriksaan'));
     }
 
     /**
@@ -120,7 +130,76 @@ class PemeriksaanController extends Controller
      */
     public function update(Request $request, Pemeriksaan $pemeriksaan)
     {
-        //
+        if ($pemeriksaan->sudah_dilayani === 0) {
+            abort(403, 'Pemeriksaan sudah tidak bisa diedit.');
+        }
+
+        $validated = $request->validate([
+            'nama_pasien' => 'required|string|max:255',
+            'waktu_pemeriksaan' => 'required|date',
+            'tinggi_badan' => 'nullable|numeric',
+            'berat_badan' => 'nullable|numeric',
+            'systole' => 'nullable|numeric',
+            'diastole' => 'nullable|numeric',
+            'heart_rate' => 'nullable|numeric',
+            'respiration_rate' => 'nullable|numeric',
+            'suhu_tubuh' => 'nullable|numeric',
+            'catatan' => 'nullable|string',
+            'resep' => 'nullable|array',
+            'resep.*.medicine_id' => 'required|string',
+            'resep.*.jumlah' => 'required|numeric|min:1',
+            'files.*' => 'nullable|file|max:2048',
+        ]);
+
+        // Update pemeriksaan
+        $pemeriksaan->update([
+            'nama_pasien' => $request->nama_pasien,
+            'waktu_pemeriksaan' => $request->waktu_pemeriksaan,
+            'tinggi_badan' => $request->tinggi_badan,
+            'berat_badan' => $request->berat_badan,
+            'systole' => $request->systole,
+            'diastole' => $request->diastole,
+            'heart_rate' => $request->heart_rate,
+            'respiration_rate' => $request->respiration_rate,
+            'suhu_tubuh' => $request->suhu_tubuh,
+            'catatan' => $request->catatan,
+        ]);
+
+        // Hapus resep lama
+        $pemeriksaan->resep()->delete();
+
+        // Simpan resep baru
+        $obatApi = app(ObatApiService::class);
+        foreach ($request->resep ?? [] as $resep) {
+            $harga = $obatApi->getMedicinePrice($resep['medicine_id'], $request->waktu_pemeriksaan);
+
+            $pemeriksaan->resep()->create([
+                'medicine_id' => $resep['medicine_id'],
+                'nama_obat' => $obatApi->getNamaObat($resep['medicine_id']),
+                'jumlah' => $resep['jumlah'],
+                'harga_satuan' => $harga ?? 0,
+            ]);
+        }
+
+        // Simpan file baru jika ada
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $path = $file->store('berkas', 'public');
+
+                $pemeriksaan->files()->create([
+                    'path' => $path,
+                ]);
+            }
+        }
+
+        // Logging
+        Log::info('Pemeriksaan diperbarui oleh dokter.', [
+            'dokter_id' => auth()->id(),
+            'pemeriksaan_id' => $pemeriksaan->id,
+        ]);
+
+        return redirect()->route('pemeriksaan.show', $pemeriksaan)
+            ->with('success', 'Pemeriksaan berhasil diperbarui.');
     }
 
     /**
