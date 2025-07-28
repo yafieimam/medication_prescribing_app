@@ -15,7 +15,12 @@ class PemeriksaanController extends Controller
      */
     public function index()
     {
-        return view('pemeriksaan.create');
+        $pemeriksaan = Pemeriksaan::withCount(['reseps', 'berkas'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return view('pemeriksaan.index', compact('pemeriksaan'));
+        
     }
 
     /**
@@ -23,7 +28,7 @@ class PemeriksaanController extends Controller
      */
     public function create()
     {
-        //
+        return view('pemeriksaan.create');
     }
 
     /**
