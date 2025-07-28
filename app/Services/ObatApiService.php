@@ -32,21 +32,47 @@ class ObatApiService
 
     public function getMedicines()
     {
-        $response = Http::withToken($this->token)
-            ->get(config('obatapi.url') . '/medicines');
+        try {
+            $response = Http::withToken($this->token)
+                ->get(config('obatapi.url') . '/medicines');
 
-        Log::info('Fetching medicines list.');
+            Log::info('Fetching medicines list.');
 
-        return $response->json();
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::error('Failed to fetch medicines list.', [
+                'message' => $e->getMessage(),
+            ]);
+            
+            return json_encode($e->getMessage());
+        }
     }
 
-    public function getMedicinePrice($medicineId)
+    public function getMedicinePrice(string $medicineId, string $tanggal): ?float
     {
-        $response = Http::withToken($this->token)
-            ->get(config('obatapi.url') . "/medicines/{$medicineId}/prices");
+        try {
+            $response = Http::withToken($this->token)
+                ->get(config('obatapi.url') . "/medicines/{$medicineId}/prices");
 
-        Log::info("Fetching price for medicine ID {$medicineId}.");
+            Log::info("Fetching price for medicine ID {$medicineId} tanggal {$tanggal}.");
 
-        return $response->json();
+            $prices = $response->json();
+
+            foreach ($prices as $price) {
+                if ($tanggal >= $price['start_date'] && $tanggal <= $price['end_date']) {
+                    return (float) $price['price'];
+                }
+            }
+
+            return (float) 0;
+        } catch (\Throwable $e) {
+            Log::error('Failed to fetch price', [
+                'medicine_id' => $medicineId,
+                'tanggal' => $tanggal,
+                'message' => $e->getMessage(),
+            ]);
+
+            return (float) 0;
+        }
     }
 }

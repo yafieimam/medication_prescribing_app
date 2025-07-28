@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\PemeriksaanController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,6 +25,8 @@ Route::middleware(['auth', 'role:dokter'])->group(function () {
     Route::get('/dokter/dashboard', function () {
         return view('dokter.dashboard');
     })->name('dokter.dashboard');
+
+    Route::resource('pemeriksaan', PemeriksaanController::class);
 });
 
 Route::middleware(['auth', 'role:apoteker'])->group(function () {
