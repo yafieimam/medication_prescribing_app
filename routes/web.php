@@ -3,14 +3,22 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PemeriksaanController;
+use App\Http\Controllers\Api\ObatAjaxController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $user = Auth::user();
+
+    return match ($user->role) {
+        'dokter' => redirect()->route('dokter.dashboard'),
+        'apoteker' => redirect()->route('apoteker.dashboard'),
+        default => abort(403, 'Role tidak dikenal.'),
+    };
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -19,6 +27,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
+    Route::get('/ajax/obat', [ObatAjaxController::class, 'autocomplete'])->name('ajax.obat.autocomplete');
+    Route::get('/ajax/harga-obat', [ObatAjaxController::class, 'harga']);
 });
 
 Route::middleware(['auth', 'role:dokter'])->group(function () {

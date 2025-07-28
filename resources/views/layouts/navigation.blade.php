@@ -10,11 +10,25 @@
                     </a>
                 </div>
 
+                @php
+                    $role = Auth::user()->role;
+                @endphp
+
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dokter.dashboard', 'apoteker.dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @if ($role === 'dokter')
+                    <x-nav-link :href="route('pemeriksaan.index')" :active="request()->routeIs('pemeriksaan.index')">
+                        {{ __('Pemeriksaan') }}
+                    </x-nav-link>
+                    @endif
+                    @if ($role === 'apoteker')
+                    <x-nav-link :href="route('pemeriksaan.index')" :active="request()->routeIs('pemeriksaan.index')">
+                        {{ __('Pembayaran') }}
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 

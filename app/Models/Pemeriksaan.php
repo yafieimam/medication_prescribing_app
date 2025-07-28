@@ -25,4 +25,14 @@ class Pemeriksaan extends Model
         'catatan',
         'sudah_dilayani'
     ];
+
+    public function reseps()
+    {
+        return $this->hasMany(Resep::class);
+    }
+
+    public function berkas()
+    {
+        return $this->hasMany(PemeriksaanBerkas::class);
+    }
 }

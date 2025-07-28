@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pemeriksaan;
+use App\Models\PemeriksaanBerkas;
+use App\Models\Resep;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -40,15 +42,56 @@ class PemeriksaanController extends Controller
             'respiration_rate' => 'required|integer',
             'suhu_tubuh' => 'required|numeric',
             'catatan' => 'nullable|string',
+            'berkas.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'resep' => 'nullable|array',
+            'resep.*.medicine_id' => 'nullable|string',
+            'resep.*.dosage' => 'nullable|string',
+            'resep.*.quantity' => 'nullable|integer|min:1',
+            'resep.*.medicine_price' => 'nullable|integer|min:1',
         ]);
 
         $validated['dokter_id'] = auth()->id();
 
-        $pemeriksaan = Pemeriksaan::create($validated);
+        try {
+            $pemeriksaan = Pemeriksaan::create($validated);
 
-        Log::info('Creating Data Pemeriksaan ID: ' . $pemeriksaan->id());
+            if ($request->hasFile('berkas')) {
+                foreach ($request->file('berkas') as $file) {
+                    $path = $file->store('pemeriksaan/berkas', 'public');
+                    PemeriksaanBerkas::create([
+                        'pemeriksaan_id' => $pemeriksaan->id,
+                        'file_path' => $path,
+                    ]);
+                }
+            }
 
-        return redirect()->route('pemeriksaan.index')->with('success', 'Pemeriksaan berhasil disimpan.');
+            foreach ($request->input('resep', []) as $item) {
+                Resep::create([
+                    'pemeriksaan_id' => $pemeriksaan->id,
+                    'medicine_id' => $item['medicine_id'],
+                    'medicine_name' => $item['medicine_name'],
+                    'dosage' => $item['dosage'],
+                    'quantity' => $item['quantity'],
+                    'prices' => $item['medicine_price'],
+                ]);
+            }
+
+            Log::info('Creating Data Pemeriksaan and Resep', [
+                'user_id' => auth()->id(),
+                'pemeriksaan_id' => $pemeriksaan->id,
+                'jumlah_resep' => count($request->input('resep', [])),
+                'jumlah_berkas' => count($request->file('berkas', [])),
+            ]);
+
+            return redirect()->route('pemeriksaan.index')->with('success', 'Pemeriksaan berhasil disimpan.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to save data pemeriksaan and resep', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors('Something went wrong in save data pemeriksaan and resep.');
+        }
     }
 
     /**
