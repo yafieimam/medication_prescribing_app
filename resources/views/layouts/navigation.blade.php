@@ -25,7 +25,7 @@
                     </x-nav-link>
                     @endif
                     @if ($role === 'apoteker')
-                    <x-nav-link :href="route('pemeriksaan.index')" :active="request()->routeIs('pemeriksaan.index')">
+                    <x-nav-link :href="route('pembayaran.index')" :active="request()->routeIs('pembayaran.index')">
                         {{ __('Pembayaran') }}
                     </x-nav-link>
                     @endif

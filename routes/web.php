@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\PemeriksaanController;
 use App\Http\Controllers\Api\ObatAjaxController;
+use App\Http\Controllers\PembayaranController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,6 +44,11 @@ Route::middleware(['auth', 'role:apoteker'])->group(function () {
     Route::get('/apoteker/dashboard', function () {
         return view('apoteker.dashboard');
     })->name('apoteker.dashboard');
+
+    Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
+    Route::get('/pembayaran/{pemeriksaan}', [PembayaranController::class, 'show'])->name('pembayaran.show');
+    Route::patch('/pembayaran/{pemeriksaan}/selesai', [PembayaranController::class, 'selesaikan'])->name('pembayaran.selesai');
+    Route::get('/pembayaran/{pemeriksaan}/cetak', [PembayaranController::class, 'cetak'])->name('pembayaran.cetak');
 });
 
 require __DIR__.'/auth.php';
